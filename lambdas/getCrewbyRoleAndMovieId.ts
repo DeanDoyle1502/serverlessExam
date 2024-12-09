@@ -46,12 +46,26 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       };
     }
 
-    const crewNames = queryResult.Items.map((item: any) => item.name);
+    const queryStringParameters = event.queryStringParameters;
+    const nameSubstring = queryStringParameters?.name;
+
+    let crewNames = queryResult.Items.flatMap((item: any) =>
+      item.names ? item.names.split(',').map((name: string) => name.trim()) : []
+    );
+    
+   
+    if (nameSubstring) {
+      crewNames = crewNames.filter(name =>
+        name.toLowerCase().includes(nameSubstring.toLowerCase())
+      );
+    }
+    
 
     return {
       statusCode: 200,
       body: JSON.stringify({ crew: crewNames }),
     };
+    
   } catch (error) {
     console.error(error);
     return {
